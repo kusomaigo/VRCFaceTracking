@@ -38,7 +38,7 @@ public class OscSendService
                 return;
             }
 
-            if (_oscTarget.OutPort == default)
+            if (_oscTarget.OutPort == default || _oscTarget.DestinationAddress == null)
             {
                 return;
             }
@@ -49,6 +49,7 @@ public class OscSendService
             if (!Validator.TryValidateObject(oscTarget, context, validationResults, true))
             {
                 var errorMessages = string.Join(Environment.NewLine, validationResults.Select(vr => vr.ErrorMessage));
+                _logger.LogInformation($"DestinationAddress: {_oscTarget.DestinationAddress}");
                 _logger.LogWarning($"{errorMessages} reverting to default.");
                 oscTarget.DestinationAddress = "127.0.0.1";
             }
@@ -78,6 +79,16 @@ public class OscSendService
         {
             _cts = new CancellationTokenSource();
         }
+
+        //// log success of UpdateTarget
+        if (!_oscTarget.IsConnected)
+        {
+            _logger.LogError($"OSC Sender Endpoint failed to bind to {endpoint}");
+        }
+        else
+        {
+            _logger.LogInformation($"OSC Sender Endpoint successfully updated to {endpoint}");
+        }
     }
     
     public async Task Send(OscMessage message, CancellationToken ct)
@@ -103,5 +114,10 @@ public class OscSendService
             await _sendSocket?.SendAsync(_sendBuffer[..length])!;
         }
         OnMessagesDispatched(index);
+    }
+
+    public bool targetConnected()
+    {
+        return _oscTarget.IsConnected;
     }
 }

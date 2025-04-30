@@ -12,6 +12,12 @@ public class ParameterSenderService : BackgroundService
  
     private readonly OscSendService _sendService;
 
+    public bool sendServiceConnected()
+    {
+
+        return false;
+    }
+
     public static bool AllParametersRelevantStatic
     {
         get; set;

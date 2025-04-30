@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Controls;
 
 using VRCFaceTracking.Activation;
 using VRCFaceTracking.Contracts.Services;
+using VRCFaceTracking.Core.Contracts;
 using VRCFaceTracking.Core.Contracts.Services;
 using VRCFaceTracking.Core.Models;
 using VRCFaceTracking.Core.OSC;

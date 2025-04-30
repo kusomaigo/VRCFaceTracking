@@ -74,9 +74,16 @@
                         <FontIcon Margin="10, 4" FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xEC05;" FontSize="20"/>
                         <StackPanel Margin="20, 4" Orientation="Vertical">
                             <TextBlock FontSize="15" Style="{ThemeResource SubtitleTextBlockStyle}" x:Uid="OSCStatus"/>
+                            <StackPanel x:Name="UsingOscQuery" Orientation="Horizontal" Margin="0,5,0,0" VerticalAlignment="Center" Visibility="{x:Bind ViewModel.OscTarget.UseOscQuery}">
+                                <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" x:Uid="UsingOscQuery" VerticalAlignment="Center"/>
+                                <Ellipse Width="10" Height="10" Fill="LimeGreen" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                                <ToolTipService.ToolTip>
+                                    <ToolTip x:Uid="UsingOscQueryTooltip" />
+                                </ToolTipService.ToolTip>
+                            </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="5" Visibility="{x:Bind ViewModel.OscTarget.IsConnected}">
                                 <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" x:Uid="Listening_on_Port"/>
-                                <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{x:Bind ViewModel.OscTarget.InPort, Mode=OneWay}"/>
+                                <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{x:Bind ViewModel.OscTarget.VisualInPort, Mode=OneWay}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="5">
                                 <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" x:Uid="Sending_on_Port"/>

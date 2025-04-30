@@ -54,9 +54,16 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                        <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
+                            <ToggleSwitch 
+                                x:Name="useOscQueryToggle" 
+                                OffContent="OSCQuery Off"
+                                OnContent="OSCQuery On"
+                                Toggled="useOscQueryToggle_Toggled"
+                                IsOn="{x:Bind OscTarget.UseOscQuery, Mode=TwoWay}" />
                             <NumberBox
-                                Header="Legacy Receive Port"
+                                x:Name="oscReceivePortBox"
+                                Header="OSC Receive Port"
                                 SpinButtonPlacementMode="Inline"
                                 SmallChange="1"
                                 LargeChange="10"
@@ -66,12 +73,12 @@
                                 Value="{x:Bind OscTarget.InPort, Mode=TwoWay}"/>
                             
                             <TextBox
-                                     Header="IP Address" 
+                                     Header="Destination IP Address" 
                                      PlaceholderText="127.0.0.1" 
                                      Text="{x:Bind OscTarget.DestinationAddress, Mode=TwoWay}"/>
                             
                             <NumberBox
-                                Header="Send Port"
+                                Header="OSC Send Port"
                                 SpinButtonPlacementMode="Inline"
                                 SmallChange="1"
                                 LargeChange="10" 
@@ -79,6 +86,9 @@
                                 Maximum="65535"
                                 Margin="15, 0, 15, 0"
                                 Value="{x:Bind OscTarget.OutPort, Mode=TwoWay}"/>
+                            <ToolTipService.ToolTip>
+                                <ToolTip x:Uid="OscSettingsTooltip" />
+                            </ToolTipService.ToolTip>
                         </StackPanel>
                     </Grid>
                 </labs:SettingsCard>

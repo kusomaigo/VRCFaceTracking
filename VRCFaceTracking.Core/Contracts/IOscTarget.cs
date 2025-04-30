@@ -15,7 +15,13 @@ public interface IOscTarget : INotifyPropertyChanged
         get;
         set;
     }
-    
+
+    public int VisualInPort
+    {
+        get;
+        set;
+    }
+
     public int OutPort
     {
         get;
@@ -26,5 +32,11 @@ public interface IOscTarget : INotifyPropertyChanged
     {
         get;
         set;
+    }
+
+    public bool UseOscQuery
+    { 
+        get; 
+        set; 
     }
 }

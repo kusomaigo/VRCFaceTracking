@@ -200,6 +200,12 @@
   <data name="LocalTestAvatar.Text" xml:space="preserve">
     <value>Local Test Avatar Detected</value>
   </data>
+  <data name="UsingOscQuery.Text" xml:space="preserve">
+    <value>OSC Query Enabled</value>
+  </data>
+  <data name="OscSettingsTooltip.Content" xml:space="preserve">
+    <value>These settings are for communcation with VRChat. You will never need to change these settings for a module!</value>
+  </data>
   <data name="LocalTestAvatarTooltip.Content" xml:space="preserve">
     <value>Local Test Avatars are not supported and will cause issues</value>
   </data>
@@ -264,7 +270,7 @@
     <value>We noticed your OSC was turned off in VRChat, we've just enabled it for you. If the game was open when this happened, you may need to manually enable it from your raidal menu. If not, you should be good to go!</value>
   </data>
   <data name="OSCStatus.Text" xml:space="preserve">
-    <value>OSC Status</value>
+    <value>(VRChat) OSC Status</value>
   </data>
   <data name="Parameters.Text" xml:space="preserve">
     <value>Parameters</value>
@@ -293,14 +299,17 @@
   <data name="UsageInstructions.Text" xml:space="preserve">
     <value>Usage Instructions</value>
   </data>
+  <data name="UsingOscQueryTooltip.Content" xml:space="preserve">
+    <value>VRCFT will attempt to hand-shake a custom port number for receiving messages from VRChat. This will help prevent receive port collision with other VRChat OSC applications.</value>
+  </data>
   <data name="Version.Text" xml:space="preserve">
     <value>Version</value>
   </data>
   <data name="OscSettings.Header" xml:space="preserve">
-    <value>OSC Address</value>
+    <value>OSC Settings for VRChat</value>
   </data>
   <data name="OscSettings.Description" xml:space="preserve">
-    <value>Where should OSC Data be sent?</value>
+    <value>VRChat OSC communcation settings</value>
   </data>
   <data name="no_modules_installed_warning.Description" xml:space="preserve">
     <value>You appear to have no modules installed.</value>

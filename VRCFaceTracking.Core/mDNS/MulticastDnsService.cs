@@ -24,16 +24,56 @@ public partial class MulticastDnsService : ObservableObject
     [ObservableProperty] private IPEndPoint? _vrchatClientEndpoint;
         
     private static List<NetworkInterface> GetIpv4NetInterfaces() => NetworkInterface.GetAllNetworkInterfaces()
-        .Where(net =>
-            net.OperationalStatus == OperationalStatus.Up &&
+        //.Where(net => net.OperationalStatus == OperationalStatus.Up).ToList();
+        .Where(net => net.OperationalStatus == OperationalStatus.Up &&
             net.NetworkInterfaceType != NetworkInterfaceType.Loopback)
         .ToList();
 
     // Get all ipv4 addresses from a specific network interface
-    private static IEnumerable<IPAddress> GetIpv4Addresses(NetworkInterface net) => net.GetIPProperties()
+    private IEnumerable<IPAddress> GetIpv4Addresses(NetworkInterface net) => net.GetIPProperties()
         .UnicastAddresses
-        .Where(addr => addr.Address.AddressFamily == AddressFamily.InterNetwork)
+        .Where(addr => addr.Address.AddressFamily == AddressFamily.InterNetwork
+                && NormalLocalIpv4Address(addr.Address)
+               )
         .Select(addr => addr.Address);
+
+    private bool NormalLocalIpv4Address(IPAddress address)
+    {
+        if (address == null)
+        {
+            return false;
+        }
+        // reference for expected internal IP address format: https://www.okta.com/identity-101/internal-ip/
+        string[] addressBytes = address.ToString().Split('.');
+        string networkPart = $"{addressBytes[0]}.{addressBytes[1]}";
+
+        // 192.168.0.0 to 192.168.255.255, which offers about 65,000 unique IP addresses 
+        // 10.0.0.0 to 10.255.255.255, a range that provides up to 16 million unique IP addresses
+        if (networkPart.Equals("192.168") || addressBytes[0].Equals("10"))
+        {
+            return true;
+        }
+        else if (addressBytes[0].Equals("172"))
+        {
+            // convert addressBytes[1] to integer
+            int addressByte1 = 0;
+            try
+            {
+                addressByte1 = int.Parse(addressBytes[1]);
+            }
+            catch (FormatException)
+            {
+                _logger.LogError("Invalid IP address happened somehow..");
+                return false;
+            }
+            // 172.16.0.0 to 172.31.255.255, providing about 1 million unique IP addresses 
+            if (addressByte1 >= 16 && addressByte1 <= 31)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
         
     public MulticastDnsService(ILogger<MulticastDnsService> logger)
     {
@@ -46,26 +86,33 @@ public partial class MulticastDnsService : ObservableObject
         Receivers.Add(receiver, new CancellationToken());
 
         // For each ip address, create a sender udp client to respond to multicast requests
+        // TODO: make this a single selection. See no reason to cast over every network interface
         var interfaces = GetIpv4NetInterfaces();
         _localIpAddresses = interfaces
-            .SelectMany(GetIpv4Addresses)
-            .Where(addr => addr.AddressFamily == AddressFamily.InterNetwork).ToList();
+            .SelectMany(GetIpv4Addresses).ToList();
             
         // For every ipv4 address discovered in the network interfaces, create a sender udp client set up grouping
         foreach (var ipAddress in _localIpAddresses)
         {
-            var sender = new UdpClient(ipAddress.AddressFamily);
-                
-            // Add the local ip address to our multicast group
-            receiver.JoinMulticastGroup(MulticastIp, ipAddress);
-                
-            sender.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            sender.Client.Bind(new IPEndPoint(ipAddress, MulticastPost));    // Bind to the local ip address
-            sender.JoinMulticastGroup(MulticastIp);                           // Join the multicast group
-            sender.Client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastLoopback, true);
-                
-            //Receivers.Add(sender, new CancellationToken());
-            Senders.Add(ipAddress, sender);
+            try
+            {
+                var sender = new UdpClient(ipAddress.AddressFamily);
+
+                // Add the local ip address to our multicast group
+                receiver.JoinMulticastGroup(MulticastIp, ipAddress);
+
+                sender.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                sender.Client.Bind(new IPEndPoint(ipAddress, MulticastPost));    // Bind to the local ip address
+                sender.JoinMulticastGroup(MulticastIp);                           // Join the multicast group
+                sender.Client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastLoopback, true);
+
+                //Receivers.Add(sender, new CancellationToken());
+                Senders.Add(ipAddress, sender);
+            }
+            catch (Exception ex) 
+            {
+                _logger.LogError("Failed to bind or add {0} to multicast group with exception: {1}", ipAddress, ex);
+            }
         }
 
         foreach (var sender in Receivers)
@@ -184,7 +231,7 @@ public partial class MulticastDnsService : ObservableObject
         //await unicastClientIp4.SendAsync(bytes, bytes.Length, remoteEndpoint);
     }
 
-    public static void ResolveVrChatClient(DnsPacket packet, IPEndPoint remoteEndpoint)
+    public void ResolveVrChatClient(DnsPacket packet, IPEndPoint remoteEndpoint)
     {
         if (!packet.QUERYRESPONSE || packet.answers.Length <= 0 || packet.answers[0].Type != 12)
         {
@@ -218,12 +265,12 @@ public partial class MulticastDnsService : ObservableObject
         {
             return;
         }
-        
-        //VrchatClientEndpoint = new IPEndPoint(vrChatClientIp.Address, vrChatClientPort.Port);
-        //OnVrcClientDiscovered();
-        //_logger.LogInformation("Resolved VRChat client at "+VrchatClientEndpoint);
+
+        _vrchatClientEndpoint = new IPEndPoint(vrChatClientIp.Address, vrChatClientPort.Port);
+        OnVrcClientDiscovered();
+        //_logger.LogInformation("Resolved VRChat client at " + _vrchatClientEndpoint);
     }
-        
+
     private async void Listen(UdpClient client, CancellationToken ct)
     {
         while (!ct.IsCancellationRequested)

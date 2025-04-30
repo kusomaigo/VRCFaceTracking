@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using VRCFaceTracking.Core.Contracts;
 using VRCFaceTracking.Core.Params.Data;
 using VrcftImage = VRCFaceTracking.Core.Types.Image;
+using VRCFaceTracking.Contracts.Services;
 
 namespace VRCFaceTracking.Views;
 
@@ -29,9 +30,14 @@ public sealed partial class SettingsPage : Page
     
     public IOscTarget OscTarget
     {
+        get; set;
+    }
+
+    private IActivationService ActivationService
+    {
         get;
     }
-    
+
     public RiskySettingsViewModel RiskySettingsViewModel
     {
         get;
@@ -48,6 +54,7 @@ public sealed partial class SettingsPage : Page
         ViewModel = App.GetService<SettingsViewModel>();
         RiskySettingsViewModel = App.GetService<RiskySettingsViewModel>();
         OscTarget = App.GetService<IOscTarget>();
+        ActivationService = App.GetService<IActivationService>();
 
         // Initialize hardware debug streams for upper and lower face tracking
         InitializeHardwareDebugStream(UnifiedTracking.EyeImageData, ref _upperImageStream, ref _upperStream);
@@ -219,4 +226,10 @@ public sealed partial class SettingsPage : Page
     private void resetVRCFTButton_OnClick(object sender, RoutedEventArgs e) => RiskySettingsViewModel.ResetVRCFT();
 
     private void resetVRCAvatarConf_OnClick(object sender, RoutedEventArgs e) => RiskySettingsViewModel.ResetAvatarOscManifests();
+
+    private void useOscQueryToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        oscReceivePortBox.IsEnabled = !useOscQueryToggle.IsOn;
+        //ActivationService.ReinitOSC();
+    }
 }

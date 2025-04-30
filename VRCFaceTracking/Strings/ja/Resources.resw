@@ -200,6 +200,12 @@
   <data name="LocalTestAvatar.Text" xml:space="preserve">
     <value>Local Test Avatar Detected</value>
   </data>
+  <data name="UsingOscQuery.Text" xml:space="preserve">
+    <value>Local Test Avatar Detected</value>
+  </data>
+  <data name="OscSettingsTooltip.Content" xml:space="preserve">
+    <value>Local Test Avatar Detected</value>
+  </data>
   <data name="LocalTestAvatarTooltip.Content" xml:space="preserve">
     <value>Local Test Avatars are not supported and will cause issues</value>
   </data>
@@ -288,6 +294,9 @@
     <value>ローカルストレージを開く</value>
   </data>
   <data name="UsageInstructions.Text" xml:space="preserve">
+    <value>使用上の注意</value>
+  </data>
+  <data name="UsingOscQueryTooltip.Content" xml:space="preserve">
     <value>使用上の注意</value>
   </data>
   <data name="Version.Text" xml:space="preserve">
