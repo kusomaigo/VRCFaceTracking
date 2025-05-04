@@ -29,8 +29,10 @@ public sealed partial class ModuleRegistryDetailControl
         _moduleInstaller = App.GetService<ModuleInstaller>();
         _libManager = App.GetService<ILibManager>();
         _mainViewModel = App.GetService<MainViewModel>();
+        /// dummy call since it shouldn't instantiate
+        //_mainViewModel.OnNavigatedFrom();
     }
-    
+
 
     private static async void OnListDetailsMenuItemPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {

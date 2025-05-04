@@ -52,26 +52,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         NoModulesInstalled = !installedNewModules.Any() && installedLegacyModules == 0;
 
         // Message Timer
-        OscRecvService.OnMessageReceived += MessageReceived;
-        OscSendService.OnMessagesDispatched += MessageDispatched;
         msgCounterTimer = new DispatcherTimer
         {
             Interval = TimeSpan.FromSeconds(1)
-        };
-        msgCounterTimer.Tick += (_, _) =>
-        {
-            MessagesInPerSec = _messagesRecvd;
-            _messagesRecvd = 0;
-            
-            MessagesOutPerSec = _messagesSent;
-            _messagesSent = 0;
-
-            foreach (var mld in LibManager.LoadedModulesLiveData)
-            {
-                //var rnd = new Random();
-                mld.ModuleUpdateInfo.GetLatestUpdateRate(); // = rnd.Next(1, 100);
-
-            }
         };
         msgCounterTimer.Start();
     }
@@ -79,24 +62,41 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private void MessageReceived(OscMessage msg) => _messagesRecvd++;
     private void MessageDispatched(int msgCount) => _messagesSent += msgCount;
 
+    private void TimerTick(object? sender, object e)
+    {
+        MessagesInPerSec = _messagesRecvd;
+        _messagesRecvd = 0;
+
+        MessagesOutPerSec = _messagesSent;
+        _messagesSent = 0;
+
+        foreach (var mld in LibManager.LoadedModulesLiveData)
+        {
+            //var rnd = new Random();
+            mld.ModuleUpdateInfo.GetLatestUpdateRate(); // = rnd.Next(1, 100);
+
+        }
+    }
+
     public void OnNavigatedFrom()
     {
         OscRecvService.OnMessageReceived -= MessageReceived;
         OscSendService.OnMessagesDispatched -= MessageDispatched;
-
-        msgCounterTimer.Stop();
+        msgCounterTimer.Tick -= TimerTick;
     }
 
     public void OnNavigatedTo(object parameter)
     {
+        OscRecvService.OnMessageReceived += MessageReceived;
+        OscSendService.OnMessagesDispatched += MessageDispatched;
+        msgCounterTimer.Tick += TimerTick;
     }
 
     ~MainViewModel()
     {
         OscRecvService.OnMessageReceived -= MessageReceived;
         OscSendService.OnMessagesDispatched -= MessageDispatched;
-        
-        msgCounterTimer.Stop();
-        
+
+        if (msgCounterTimer != null && msgCounterTimer.IsEnabled) msgCounterTimer.Stop();
     }
 }
