@@ -5,7 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="using:VRCFaceTracking.Helpers"
-    xmlns:models="using:VRCFaceTracking"
+    xmlns:models="using:VRCFaceTracking.Core"
     xmlns:views="using:VRCFaceTracking.Views"
     mc:Ignorable="d">
 
@@ -15,9 +15,9 @@
 
     <Grid>
         <StackPanel Orientation="Vertical">
-            <ItemsControl ItemsSource="{x:Bind ViewModel.LibManager.LoadedModulesMetadata}">
+            <ItemsControl ItemsSource="{x:Bind ViewModel.LibManager.LoadedModulesLiveData}">
                 <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="models:ModuleMetadata">
+                    <DataTemplate x:DataType="models:ModuleLiveData">
                         <Border CornerRadius="6" BorderThickness="1" Background="{ThemeResource LayerFillColorDefaultBrush}">
                             <Grid Margin="15, 15">
                                 <Grid.ColumnDefinitions>
@@ -26,7 +26,7 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <ItemsControl ItemsSource="{x:Bind StaticImages, Converter={StaticResource ImageConverter}}" Grid.Column="0">
+                                <ItemsControl ItemsSource="{x:Bind LoadedModuleMetadata.StaticImages, Converter={StaticResource ImageConverter}}" Grid.Column="0">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <StackPanel Orientation="Horizontal"/>
@@ -44,9 +44,13 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                                 <StackPanel Margin="15, 15" Grid.Column="2" Orientation="Vertical" VerticalAlignment="Center">
-                                    <TextBlock FontSize="30" Style="{ThemeResource SubtitleTextBlockStyle}" Text="{x:Bind Name, Mode=OneWay}"/>
-                                    <TextBlock Visibility="{x:Bind UsingEye, Mode=OneWay}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" x:Uid="EyeTrackingActive" />
-                                    <TextBlock Visibility="{x:Bind UsingExpression, Mode=OneWay}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" x:Uid="FaceTrackingActive" />
+                                    <TextBlock FontSize="30" Style="{ThemeResource SubtitleTextBlockStyle}" Text="{x:Bind LoadedModuleMetadata.Name, Mode=OneWay}"/>
+                                    <TextBlock Visibility="{x:Bind LoadedModuleMetadata.UsingEye, Mode=OneWay}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" x:Uid="EyeTrackingActive" />
+                                    <TextBlock Visibility="{x:Bind LoadedModuleMetadata.UsingExpression, Mode=OneWay}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" x:Uid="FaceTrackingActive" />
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="3">
+                                        <TextBlock HorizontalTextAlignment="Left" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{x:Bind ModuleUpdateInfo.UpdateRate, Mode=OneWay}"/>
+                                        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" x:Uid="Module_Updates_Count"/>
+                                    </StackPanel>
                                 </StackPanel>
                                 <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
                                     <ToggleButton Margin="15, 0, 25, 0" 

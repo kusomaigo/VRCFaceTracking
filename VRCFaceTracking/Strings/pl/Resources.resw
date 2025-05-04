@@ -285,7 +285,6 @@
     <value>Klonowanie repozytorium</value>
   </data>
   <data name="OpenLocalStorageCard.Header" xml:space="preserve">
-    <value>Open Local Storage</value>
     <value>Otwórz lokalną pamięć</value>
   </data>
   <data name="UsageInstructions.Text" xml:space="preserve">
@@ -383,5 +382,8 @@
   </data>
   <data name="HardwareDebug.Description" xml:space="preserve">
     <value>Po prostu pooglądaj sobie swój język</value>
+  </data>
+  <data name="Module_Updates_Count.Text" xml:space="preserve">
+    <value>Port nasłuchiwania:</value>
   </data>
 </root>

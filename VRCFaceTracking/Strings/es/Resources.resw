@@ -197,7 +197,7 @@
   <data name="AvatarStatus.Text" xml:space="preserve">
     <value>Estado del avatar</value>
   </data>
-  <data name="copyright.Description" xml:space="preserve">
+  <data name="Copyright.Description" xml:space="preserve">
     <value>© 2023 VRCFaceTracking. Todos los derechos reservados.</value>
   </data>
   <data name="Dependencies.Header" xml:space="preserve">
@@ -239,9 +239,6 @@
   <data name="msOutgoing.Text" xml:space="preserve">
     <value>m/s Saliente</value>
   </data>
-  <data name="NoModulesInstalled.Text" xml:space="preserve">
-    <value>No hay módulos instalados</value>
-  </data>
   <data name="OSCStatus.Text" xml:space="preserve">
     <value>Estado de OSC</value>
   </data>
@@ -272,10 +269,16 @@
   <data name="OscSettings.Description" xml:space="preserve">
     <value>¿Dónde se deben enviar los datos OSC?</value>
   </data>
+  <data name="Shell_TrackingSettings.Content" xml:space="preserve">
+    <value>Configuración de Seguimiento</value>
+  </data>
+  <data name="NoModulesInstalled.Text" xml:space="preserve">
+    <value>No hay módulos instalados</value>
+  </data>
   <data name="You_appear_to_have_no_modules_installed.Text" xml:space="preserve">
     <value>Parece que no tienes ningún módulo instalado.</value>
   </data>
-  <data name="Shell_TrackingSettings.Content" xml:space="preserve">
-    <value>Configuración de Seguimiento</value>
+  <data name="Module_Updates_Count.Text" xml:space="preserve">
+    <value>Escuchando en el puerto:</value>
   </data>
 </root>

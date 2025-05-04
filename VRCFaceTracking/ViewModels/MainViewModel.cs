@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.UI.Xaml;
+using VRCFaceTracking.Core;
 using VRCFaceTracking.Core.Contracts;
 using VRCFaceTracking.Core.Contracts.Services;
 using VRCFaceTracking.Core.OSC;
@@ -47,7 +48,7 @@ public partial class MainViewModel : ObservableRecipient
         var installedNewModules = moduleDataService.GetInstalledModules();
         var installedLegacyModules = moduleDataService.GetLegacyModules().Count();
         NoModulesInstalled = !installedNewModules.Any() && installedLegacyModules == 0;
-        
+
         // Message Timer
         OscRecvService.OnMessageReceived += MessageReceived;
         OscSendService.OnMessagesDispatched += MessageDispatched;
@@ -62,6 +63,11 @@ public partial class MainViewModel : ObservableRecipient
             
             MessagesOutPerSec = _messagesSent;
             _messagesSent = 0;
+
+            foreach (var mld in libManager.LoadedModulesLiveData)
+            {
+                mld.ModuleUpdateInfo.GetLatestUpdateRate();
+            }
         };
         msgCounterTimer.Start();
     }

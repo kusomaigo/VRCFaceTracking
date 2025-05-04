@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.Loader;
 using Microsoft.Extensions.Logging;
@@ -14,7 +15,8 @@ public class UnifiedLibManager : ILibManager
     #endregion
 
     #region Observables
-    public ObservableCollection<ModuleMetadata> LoadedModulesMetadata { get; set; }
+    //public ObservableCollection<ModuleMetadata> LoadedModulesMetadata { get; set; }
+    public ObservableCollection<ModuleLiveData> LoadedModulesLiveData { get; set; }
     private readonly IDispatcherService _dispatcherService;
     #endregion
 
@@ -41,17 +43,31 @@ public class UnifiedLibManager : ILibManager
         _dispatcherService = dispatcherService;
         _moduleDataService = moduleDataService;
 
-        LoadedModulesMetadata = new ObservableCollection<ModuleMetadata>();
+        //LoadedModulesMetadata = new ObservableCollection<ModuleMetadata>();
+        LoadedModulesLiveData = new ObservableCollection<ModuleLiveData>();
     }
 
     public void Initialize()
     {
-        LoadedModulesMetadata.Clear();
-        LoadedModulesMetadata.Add(new ModuleMetadata
-        { 
+        //LoadedModulesMetadata.Clear();
+        //LoadedModulesMetadata.Add(new ModuleMetadata
+        //{ 
+        //    Active = false,
+        //    Name = "Initializing Modules..."
+        //});
+        ModuleMetadata tempInitModMetaData = new ModuleMetadata
+        {
             Active = false,
             Name = "Initializing Modules..."
-        });
+        };
+        LoadedModulesLiveData.Clear();
+        ModuleLiveData tempInitModLiveData = new ModuleLiveData
+        (
+            tempInitModMetaData,
+            new UpdateInfo(null)
+        ); 
+        LoadedModulesLiveData.Add(tempInitModLiveData);
+
 
         // Start Initialization
         _initializeWorker = new Thread(() =>
@@ -76,17 +92,33 @@ public class UnifiedLibManager : ILibManager
             {
                 _dispatcherService.Run(() =>
                 {
-                    LoadedModulesMetadata.Clear();
-                    LoadedModulesMetadata.Add(new ModuleMetadata
+                    //// TODO: make this message more informational 
+                    
+                    //LoadedModulesMetadata.Clear();
+                    //LoadedModulesMetadata.Add(new ModuleMetadata
+                    //{
+                    //    Active = false,
+                    //    Name = "No Modules Loaded"
+                    //});
+                    ModuleMetadata tempInitModMetaData = new ModuleMetadata
                     {
                         Active = false,
-                        Name = "No Modules Loaded"
-                    });
+                        Name = "No Available Modules"
+                    };
+                    LoadedModulesLiveData.Clear();
+                    ModuleLiveData tempInitModLiveData = new ModuleLiveData
+                    (
+                        tempInitModMetaData,
+                        new UpdateInfo(null)
+                    );
+                    LoadedModulesLiveData.Add(tempInitModLiveData);
+
                 });
                 _logger.LogWarning("No modules loaded.");
             }
         });
-        _logger.LogInformation("Starting initialization tracking");
+
+        _logger.LogInformation("Starting initialization...");
         _initializeWorker.Start();
     }
 
@@ -116,6 +148,9 @@ public class UnifiedLibManager : ILibManager
 
     private List<Assembly> LoadAssembliesFromPath(IEnumerable<string> path)
     {
+        //// used for comparision with versions in assemblies we are trying to load
+        var programAssemblyVersion = Assembly.GetExecutingAssembly().GetName().Version;
+
         var returnList = new List<Assembly>();
         foreach (var dll in path)
         {
@@ -125,7 +160,7 @@ public class UnifiedLibManager : ILibManager
                 var loaded = alc.LoadFromAssemblyPath(dll);
                 
                 var references = loaded.GetReferencedAssemblies();
-                var oldRefs = false;
+                var skipThisRef = false;
                 foreach (var reference in references)
                 {
                     if (reference.Name == "VRCFaceTracking" || reference.Name == "VRCFaceTracking.Core")
@@ -133,11 +168,16 @@ public class UnifiedLibManager : ILibManager
                         if (reference.Version < new Version(5, 0, 0, 0))
                         {
                             _logger.LogWarning("Module {dll} references an older version of VRCFaceTracking. Skipping.", Path.GetFileName(dll));
-                            oldRefs = true;
+                            skipThisRef = true;
+                        }
+                        if (reference.Version > programAssemblyVersion)
+                        {
+                            _logger.LogWarning("Module {dll} references an newer version of VRCFaceTracking. Skipping.", Path.GetFileName(dll));
+                            skipThisRef = true;
                         }
                     }
                 }
-                if (oldRefs)
+                if (skipThisRef)
                 {
                     continue;
                 }
@@ -162,7 +202,7 @@ public class UnifiedLibManager : ILibManager
         return returnList;
     }
 
-    private void EnsureModuleThreadStarted(ExtTrackingModule module)
+    private void EnsureModuleThreadStarted(ExtTrackingModule module, UpdateInfo updateInfo)
     {
         if (_moduleThreads.Any(pair => pair.Module == module))
         {
@@ -173,21 +213,34 @@ public class UnifiedLibManager : ILibManager
         var thread = new Thread(() =>
         {
             _logger.LogDebug("Starting thread for {module}", module.GetType().Name);
+
+            //// stopwatch for timekeeping module updates
+            Stopwatch sw = new Stopwatch();
+
             while (!cts.IsCancellationRequested)
             {
+                // expect the module to set the update speed
+                // but monitor the rate between updates for calculating parameter updates/second  
                 module.Update();
+
+                // check for Unified Expression updates 
+                // checking just for how often Update() gets called doesn't do anything since the loop can run with no data to send
+                // gate what expressions to check by what the module is initialized for (eyes / mouth) 
+                updateInfo.registerUpdate();
+                //_logger.LogInformation($"{updateInfo.UpdateRate}");
+
             }
             _logger.LogDebug("Thread for {module} ended", module.GetType().Name);
         });
         thread.Start();
-
         var runtimeModules = new ModuleRuntimeInfo
         {
             Module = module,
             UpdateCancellationToken = cts,
             AssemblyLoadContext = AssemblyLoadContext.GetLoadContext(module.GetType().Assembly),
-            UpdateThread = thread
-        };
+            UpdateThread = thread,
+            UpdateInfo = updateInfo
+        }; 
 
         _moduleThreads.Add(runtimeModules);
     }
@@ -232,18 +285,39 @@ public class UnifiedLibManager : ILibManager
         module.ModuleInformation.Active = true;
         module.ModuleInformation.UsingEye = eyeSuccess;
         module.ModuleInformation.UsingExpression = expressionSuccess;
-        _dispatcherService.Run(() => { 
-            if (!LoadedModulesMetadata.Contains(module.ModuleInformation))
+
+        var updateInfo = new UpdateInfo(module);
+
+        _dispatcherService.Run(() => {
+            //if (!LoadedModulesMetadata.Contains(module.ModuleInformation))
+            //{
+            //    LoadedModulesMetadata.Add(module.ModuleInformation);
+            //}
+            var isNewModule = true;
+            foreach (ModuleLiveData mld in LoadedModulesLiveData)
             {
-                LoadedModulesMetadata.Add(module.ModuleInformation);
+                if (mld.LoadedModuleMetadata.Equals(module.ModuleInformation))
+                {
+                    isNewModule = false; break;
+                }
+            }
+            if (isNewModule) 
+            {
+                ModuleLiveData modLiveData = new ModuleLiveData
+                (
+                     module.ModuleInformation,
+                     updateInfo
+                );
+                LoadedModulesLiveData.Add(modLiveData);
             }
         });
-        EnsureModuleThreadStarted(module);
+        EnsureModuleThreadStarted(module, updateInfo);
     }
 
     private void InitRequestedRuntimes(List<Assembly> moduleType)
     {
-        _logger.LogInformation("Initializing runtimes...");
+        var numModulesToInit = moduleType.Count;
+        _logger.LogInformation($"Initializing runtimes from list of {numModulesToInit} total installed modules...");
 
         foreach (var module in moduleType.TakeWhile(_ => EyeStatus <= ModuleState.Uninitialized || ExpressionStatus <= ModuleState.Uninitialized))
         {
@@ -257,12 +331,25 @@ public class UnifiedLibManager : ILibManager
             _logger.LogWarning("No modules loaded.");
             _dispatcherService.Run(() =>
             {
-                LoadedModulesMetadata.Clear();
-                LoadedModulesMetadata.Add(new ModuleMetadata
+                //LoadedModulesMetadata.Clear();
+                //LoadedModulesMetadata.Add(new ModuleMetadata
+                //{
+                //    Active = false,
+                //    Name = "No Modules Loaded"
+                //});
+
+                ModuleMetadata tempInitModMetaData = new ModuleMetadata
                 {
                     Active = false,
-                    Name = "No Modules Loaded"
-                });
+                    Name = $"No Modules Initialized. {numModulesToInit} Modules Failed Init"
+                };
+                LoadedModulesLiveData.Clear();
+                ModuleLiveData tempInitModLiveData = new ModuleLiveData
+                (
+                    tempInitModMetaData,
+                    new UpdateInfo(null)
+                );
+                LoadedModulesLiveData.Add(tempInitModLiveData);
             });
         }
         else
@@ -270,7 +357,8 @@ public class UnifiedLibManager : ILibManager
             _dispatcherService.Run(() =>
             {
                 // Remove our dummy module
-                LoadedModulesMetadata.RemoveAt(0);
+                //LoadedModulesMetadata.RemoveAt(0);
+                LoadedModulesLiveData.RemoveAt(0);
             });
             foreach (var pair in _moduleThreads)
             {

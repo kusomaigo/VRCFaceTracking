@@ -389,4 +389,7 @@
   <data name="Shell_TrackingSettings.Content" xml:space="preserve">
     <value>Tracking Settings</value>
   </data>
+  <data name="Module_Updates_Count.Text" xml:space="preserve">
+    <value>Expression Data Updates / second </value>
+  </data>
 </root>

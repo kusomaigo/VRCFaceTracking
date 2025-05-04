@@ -320,4 +320,7 @@
   <data name="AutoStartSettings.Description" xml:space="preserve">
     <value>SteamVRの起動時に自動で起動します</value>
   </data>
+  <data name="Module_Updates_Count.Text" xml:space="preserve">
+    <value>受信ポート:</value>
+  </data>
 </root>
