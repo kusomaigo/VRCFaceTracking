@@ -1,5 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
+using VRCFaceTracking.Contracts.ViewModels;
 using VRCFaceTracking.Core;
 using VRCFaceTracking.Core.Contracts;
 using VRCFaceTracking.Core.Contracts.Services;
@@ -8,7 +10,7 @@ using VRCFaceTracking.Core.Services;
 
 namespace VRCFaceTracking.ViewModels;
 
-public partial class MainViewModel : ObservableRecipient
+public partial class MainViewModel : ObservableRecipient, INavigationAware
 {
     public ILibManager LibManager { get; }
     public OscQueryService ParameterOutputService { get; }
@@ -26,7 +28,7 @@ public partial class MainViewModel : ObservableRecipient
     
     [ObservableProperty] private bool _oscWasDisabled;
 
-    private DispatcherTimer msgCounterTimer;
+    private readonly DispatcherTimer msgCounterTimer;
 
     public MainViewModel(
         ILibManager libManager,
@@ -64,9 +66,11 @@ public partial class MainViewModel : ObservableRecipient
             MessagesOutPerSec = _messagesSent;
             _messagesSent = 0;
 
-            foreach (var mld in libManager.LoadedModulesLiveData)
+            foreach (var mld in LibManager.LoadedModulesLiveData)
             {
-                mld.ModuleUpdateInfo.GetLatestUpdateRate();
+                //var rnd = new Random();
+                mld.ModuleUpdateInfo.GetLatestUpdateRate(); // = rnd.Next(1, 100);
+
             }
         };
         msgCounterTimer.Start();
@@ -75,11 +79,24 @@ public partial class MainViewModel : ObservableRecipient
     private void MessageReceived(OscMessage msg) => _messagesRecvd++;
     private void MessageDispatched(int msgCount) => _messagesSent += msgCount;
 
+    public void OnNavigatedFrom()
+    {
+        OscRecvService.OnMessageReceived -= MessageReceived;
+        OscSendService.OnMessagesDispatched -= MessageDispatched;
+
+        msgCounterTimer.Stop();
+    }
+
+    public void OnNavigatedTo(object parameter)
+    {
+    }
+
     ~MainViewModel()
     {
         OscRecvService.OnMessageReceived -= MessageReceived;
         OscSendService.OnMessagesDispatched -= MessageDispatched;
         
         msgCounterTimer.Stop();
+        
     }
 }

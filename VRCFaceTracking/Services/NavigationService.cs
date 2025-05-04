@@ -6,6 +6,8 @@ using Microsoft.UI.Xaml.Navigation;
 using VRCFaceTracking.Contracts.Services;
 using VRCFaceTracking.Contracts.ViewModels;
 using VRCFaceTracking.Helpers;
+using VRCFaceTracking.ViewModels;
+using Windows.ApplicationModel.Background;
 
 namespace VRCFaceTracking.Services;
 
@@ -98,7 +100,6 @@ public class NavigationService : INavigationService
                     navigationAware.OnNavigatedFrom();
                 }
             }
-
             return navigated;
         }
 

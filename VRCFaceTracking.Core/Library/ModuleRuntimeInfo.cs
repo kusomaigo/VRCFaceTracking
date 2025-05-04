@@ -8,5 +8,5 @@ public struct ModuleRuntimeInfo
     public AssemblyLoadContext AssemblyLoadContext;
     public CancellationTokenSource UpdateCancellationToken;
     public Thread UpdateThread;
-    public UpdateInfo UpdateInfo;
+    //public UpdateInfo UpdateInfo;
 }

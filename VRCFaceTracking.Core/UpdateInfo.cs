@@ -50,7 +50,7 @@ public partial class UpdateInfo : ObservableObject
         //_sw.Stop();
         //_lastUpdateInterval = _sw.ElapsedMilliseconds;
         //_sw.Reset();
-        // compare data
+        //// compare data
 
         //_lastUpdateChangesNum = 0;
 
@@ -92,7 +92,7 @@ public partial class UpdateInfo : ObservableObject
         // actually we can't do that because only UI thread should cause UI changing calls
         //_updateRate = (int)(_lastUpdateChangesNum / (_lastUpdateInterval / 1000.0));
 
-        // restart the stopwatch
+        //// restart the stopwatch
         //_sw.Start();
     }
 
@@ -106,9 +106,9 @@ public partial class UpdateInfo : ObservableObject
         _sw.Stop();
         _lastUpdateInterval = _sw.ElapsedMilliseconds;
         _sw.Reset();
-        //UpdateRate = _updateRate;
         UpdateRate = (int)(_lastUpdateChangesNum / (_lastUpdateInterval / 1000.0));
         _lastUpdateChangesNum = 0;
+        _lastUpdateInterval = 0;
         _sw.Start();
     }
 }

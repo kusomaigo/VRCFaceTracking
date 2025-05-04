@@ -238,8 +238,8 @@ public class UnifiedLibManager : ILibManager
             Module = module,
             UpdateCancellationToken = cts,
             AssemblyLoadContext = AssemblyLoadContext.GetLoadContext(module.GetType().Assembly),
-            UpdateThread = thread,
-            UpdateInfo = updateInfo
+            UpdateThread = thread//,
+            //UpdateInfo = updateInfo
         }; 
 
         _moduleThreads.Add(runtimeModules);
