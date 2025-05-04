@@ -96,7 +96,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     {
         OscRecvService.OnMessageReceived -= MessageReceived;
         OscSendService.OnMessagesDispatched -= MessageDispatched;
-
-        if (msgCounterTimer != null && msgCounterTimer.IsEnabled) msgCounterTimer.Stop();
+        try
+        {
+            if (msgCounterTimer != null && msgCounterTimer.IsEnabled) msgCounterTimer.Stop();
+        } catch
+        {
+            // it's already disposed so... 
+        }
     }
 }
