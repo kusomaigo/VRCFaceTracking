@@ -293,15 +293,28 @@ public static class UnifiedExpressionsParameters
         new EParam("v2/TongueShape", exp => exp.Shapes[(int)UnifiedExpressions.TongueFlat].Weight - exp.Shapes[(int)UnifiedExpressions.TongueSquish].Weight),
 
         #endregion
+    };
 
-        new ConditionalBoolParameter(exp => (UnifiedLibManager.EyeStatus == ModuleState.Active, UnifiedLibManager.EyeStatus != ModuleState.Uninitialized), "EyeTrackingActive"),
-        new ConditionalBoolParameter(exp => (UnifiedLibManager.ExpressionStatus == ModuleState.Active, UnifiedLibManager.ExpressionStatus != ModuleState.Uninitialized), "ExpressionTrackingActive"),
-        new ConditionalBoolParameter(exp => (UnifiedLibManager.ExpressionStatus == ModuleState.Active, UnifiedLibManager.ExpressionStatus != ModuleState.Uninitialized), "LipTrackingActive")
+    public static readonly Parameter[] UnifiedStateParameters =
+    {
+        // why wass this in combined?? I guess it was out of convenience
+        // we don't actually use the exp in these getValueFunc since it won't be in the UnifiedTrackingData
+
+        //new ConditionalBoolParameter(exp => (UnifiedLibManager.EyeStatus == ModuleState.Active, UnifiedLibManager.EyeStatus != ModuleState.Uninitialized), "EyeTrackingActive"),
+        //new ConditionalBoolParameter(exp => (UnifiedLibManager.ExpressionStatus == ModuleState.Active, UnifiedLibManager.ExpressionStatus != ModuleState.Uninitialized), "ExpressionTrackingActive"),
+        //new ConditionalBoolParameter(exp => (UnifiedLibManager.ExpressionStatus == ModuleState.Active, UnifiedLibManager.ExpressionStatus != ModuleState.Uninitialized), "LipTrackingActive")
+
+        // instead of conditionally updating these on wheter module is initialized, always update these as relevant parameters equal to
+        // whether or not the modulestate is active
+        // TODO: merge with updaterate change to automatically detect an "inactive" active module? 
+        new StateBoolParameter(exp => (UnifiedLibManager.EyeStatus == ModuleState.Active), "EyeTrackingActive"),
+        new StateBoolParameter(exp => (UnifiedLibManager.ExpressionStatus == ModuleState.Active), "ExpressionTrackingActive"),
+        new StateBoolParameter(exp => (UnifiedLibManager.ExpressionStatus == ModuleState.Active), "LipTrackingActive")
 
     };
 
     public static readonly Parameter[] ExpressionParameters =
-        GetAllBaseExpressions().Union(GetAllBaseSimpleExpressions()).Union(UnifiedCombinedShapes).ToArray();
+        GetAllBaseExpressions().Union(GetAllBaseSimpleExpressions()).Union(UnifiedCombinedShapes).Union(UnifiedStateParameters).ToArray();
 
     private static IEnumerable<EParam> GetAllBaseExpressions() =>
         ((UnifiedExpressions[])Enum.GetValues(typeof(UnifiedExpressions))).ToList().Select(shape =>

@@ -60,7 +60,8 @@ public class BaseParam<T> : Parameter where T : struct
         get => (T)OscMessage.Value;
         set
         {
-            if (value.Equals(_lastValue))
+            // parameters should only update if relevant
+            if (value.Equals(_lastValue) || !Relevant)
             {
                 return;
             }
@@ -108,6 +109,9 @@ public class BaseParam<T> : Parameter where T : struct
             Relevant = false;
             OscMessage.Address = DefaultPrefix + _paramName;
         }
+
+        // reset last value as well so carry over doesn't happen between avatars
+        _lastValue = null;
 
         return Relevant ? new Parameter[] { this } : Array.Empty<Parameter>();
     }

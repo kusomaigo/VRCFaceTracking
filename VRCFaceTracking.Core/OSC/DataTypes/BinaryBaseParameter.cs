@@ -44,7 +44,14 @@ public class BinaryBaseParameter : Parameter
      */
     public override Parameter[] ResetParam(IParameterDefinition[] newParams)
     {
+        foreach (var param in _params)
+        {
+            // reset the base bool parameters but without regular newParams consideration 
+            param.ResetParam(Array.Empty<IParameterDefinition>());
+        }
+        // clear the set of binary parameters now that they're successfully no longer relevant
         _params.Clear();
+        // is the negative binary parameter still relevant for the new set of parameters
         var negativeRelevancy = _negativeParam.ResetParam(newParams);
 
         var boolParams = newParams.Where(p =>
@@ -68,6 +75,7 @@ public class BinaryBaseParameter : Parameter
 
         // Calculate the highest possible binary number
         _maxPossibleBinaryInt = (int)Math.Pow(2, paramsToCreate.Values.Count);
+        // start new binary parameters list with the negative being there or not
         var parameters = new List<Parameter>(negativeRelevancy);
         foreach (var newBool in paramsToCreate
                      .Select(param =>

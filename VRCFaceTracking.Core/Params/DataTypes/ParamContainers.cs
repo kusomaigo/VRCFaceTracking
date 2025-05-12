@@ -68,6 +68,30 @@ public class ConditionalBoolParameter : BaseParam<bool>
     }
 }
 
+
+// parameter that isn't tied directly to tracking data but rather program state
+// always send on load
+public class StateBoolParameter : BaseParam<bool>
+{
+    public StateBoolParameter(Func<UnifiedTrackingData, bool> getValueFunc, string paramName) :
+        base(paramName, exp => getValueFunc.Invoke(exp), true)
+    {
+        //Relevant = true;
+    }
+
+    // Override deprecated, since we never really want to deprecate these parameters
+    public override bool Deprecated => false;
+
+    // Override ResetParam so that it always parses as relevant
+    //public override Parameter[] ResetParam(IParameterDefinition[] newParams)
+    //{
+    //    base.ResetParam(newParams);
+    //    //Relevant = true;
+    //    //return new Parameter[] { this };
+    //}
+}
+
+
 // EverythingParam, or EpicParam. You choose!
 // Contains a bool, float and binary parameter, all in one class with IParameter implemented.
 public class EParam : Parameter
